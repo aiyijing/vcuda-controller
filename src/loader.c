@@ -30,6 +30,7 @@
 #include "include/cuda-helper.h"
 #include "include/hijack.h"
 #include "include/nvml-helper.h"
+#include "cgroup/cgroup.h"
 
 entry_t cuda_library_entry[] = {
     {.name = "cuInit"},
@@ -933,6 +934,20 @@ void load_cuda_libraries() {
   dlclose(table);
 }
 
+int get_cgroup_data_by_cgo(const char *pid_cgroup, char *pod_uid, char *container_id, size_t size) {
+    char path[1024];
+    strcpy(path, pid_cgroup);
+    struct get_cgroup_data_with_containerd_return ret = get_cgroup_data_with_containerd(path);
+    if (ret.r0 == NULL || ret.r1 == NULL) {
+        return 1;
+    }
+    strncpy(pod_uid, ret.r0, size);
+    pod_uid[size - 1] = '\0';
+    strncpy(container_id, ret.r1, size);
+    pod_uid[size - 1] = '\0';
+    return 0;
+}
+
 // #lizard forgives
 int get_cgroup_data(const char *pid_cgroup, char *pod_uid, char *container_id,
                     size_t size) {
@@ -943,7 +958,11 @@ int get_cgroup_data(const char *pid_cgroup, char *pod_uid, char *container_id,
   char buffer[4096];
   int is_systemd = 0;
   char *prune_pos = NULL;
-
+  // get cgroup data by cgo
+  if (!get_cgroup_data_by_cgo(pid_cgroup, pod_uid, container_id, sizeof(container_id))) {
+    return 0;
+  }
+  LOGGER(4, "faild get cgroup data by cgo %s", pid_cgroup);
   cgroup_fd = fopen(pid_cgroup, "r");
   if (unlikely(!cgroup_fd)) {
     LOGGER(4, "can't open %s, error %s", pid_cgroup, strerror(errno));
