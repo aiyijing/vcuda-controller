@@ -959,7 +959,7 @@ int get_cgroup_data(const char *pid_cgroup, char *pod_uid, char *container_id,
   int is_systemd = 0;
   char *prune_pos = NULL;
   // get cgroup data by cgo
-  if (!get_cgroup_data_by_cgo(pid_cgroup, pod_uid, container_id, sizeof(container_id))) {
+  if (!get_cgroup_data_by_cgo(pid_cgroup, pod_uid, container_id, size)) {
     LOGGER(4, "get cgroup data by cgo pod_uid: %s container_id: %s", pod_uid, container_id);
     return 0;
   }

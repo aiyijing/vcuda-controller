@@ -32,7 +32,7 @@ func get_cgroup_data_with_containerd(path *C.char) (pod_id *C.char, container_id
 		}
 	}
 	// find pod ID and container ID
-	raws := strings.SplitN(rawLine, "kubepods-pod", 2)
+	raws := strings.SplitN(rawLine, "-pod", 2)
 	if len(raws) == 2 {
 		ids := strings.SplitN(raws[1], ".slice:cri-containerd:", 2)
 		if len(ids) == 2 {
