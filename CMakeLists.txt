@@ -3,6 +3,7 @@ project(hijack C CXX)
 
 add_definitions(-D_GNU_SOURCE)
 add_compile_options(-Wall -Wshadow -Werror -Wno-format)
+find_library(CGROUPLIB cgroup.a ./cgroup/)
 
 include_directories(${CMAKE_SOURCE_DIR})
 
@@ -24,11 +25,12 @@ if (${USE_ORIGINAL})
             include/nvml-subset.h
             include/cuda-helper.h
             include/nvml-helper.h
+            cgroup/cgroup.h
             src/cuda_originals.c
             src/nvml_entry.c
             src/loader.c
             src/register.c)
-    target_link_libraries(cuda-control ${STATIC_C_LIBRARIES})
+    target_link_libraries(cuda-control ${STATIC_C_LIBRARIES} ${CGROUPLIB})
 else (NOT ${USE_ORIGINAL})
     # controller related
     add_library(cuda-control SHARED
@@ -38,20 +40,20 @@ else (NOT ${USE_ORIGINAL})
             include/nvml-subset.h
             include/cuda-helper.h
             include/nvml-helper.h
+            cgroup/cgroup.h
             src/cuda_originals.c
             src/nvml_entry.c
             src/loader.c
             src/register.c)
 
-    target_link_libraries(cuda-control ${STATIC_C_LIBRARIES})
+    target_link_libraries(cuda-control ${STATIC_C_LIBRARIES} ${CGROUPLIB})
 
     # process monitor
     add_executable(nvml-monitor
             tools/monitor_dockernized.c
             src/loader.c
             src/register.c)
-    target_link_libraries(nvml-monitor ${STATIC_C_LIBRARIES} -ldl -lpthread)
+    target_link_libraries(nvml-monitor ${STATIC_C_LIBRARIES} ${CGROUPLIB} -ldl -lpthread)
 endif ()
 
 target_compile_options(cuda-control PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++11>)
-
