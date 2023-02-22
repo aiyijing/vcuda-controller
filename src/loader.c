@@ -936,7 +936,7 @@ void load_cuda_libraries() {
 
 int get_cgroup_data_by_cgo(const char *pid_cgroup, char *pod_uid, char *container_id, size_t size) {
     char path[1024];
-    strcpy(path, pid_cgroup);
+    strncpy(path, pid_cgroup, sizeof(path));
     struct get_cgroup_data_with_containerd_return ret = get_cgroup_data_with_containerd(path);
     if (ret.r0 == NULL || ret.r1 == NULL) {
         return 1;
@@ -960,6 +960,7 @@ int get_cgroup_data(const char *pid_cgroup, char *pod_uid, char *container_id,
   char *prune_pos = NULL;
   // get cgroup data by cgo
   if (!get_cgroup_data_by_cgo(pid_cgroup, pod_uid, container_id, sizeof(container_id))) {
+    LOGGER(4, "get cgroup data by cgo pod_uid: %s container_id: %s", pod_uid, container_id);
     return 0;
   }
   LOGGER(4, "faild get cgroup data by cgo %s", pid_cgroup);
